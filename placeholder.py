@@ -27,12 +27,16 @@ class PlaceHolder:
         x_mask = node_mask.unsqueeze(-1)  # bs, n, 1
 
         # Your solution here ###########################################################
-        e_mask1 = ...  # bs, n, 1, 1
-        e_mask2 = ...  # bs, 1, n, 1
-        diag_mask = ...  # bs, n, n, 1
+        e_mask1 = node_mask.unsqueeze(-1).unsqueeze(-1)  # bs, n, 1, 1
+        e_mask2 = node_mask.unsqueeze(1).unsqueeze(-1)  # bs, 1, n, 1
+        diag_mask = torch.ones([bs, n, n, 1], dtype=torch.bool)  # bs, n, n, 1
+        for node in range(n):
+            for graph in range(bs):
+                diag_mask[graph, node, node, 0] = False
         # ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
         self.X = self.X * x_mask
+
         self.E = self.E * e_mask1 * e_mask2 * diag_mask
         assert torch.allclose(self.E, torch.transpose(self.E, 1, 2))
 
