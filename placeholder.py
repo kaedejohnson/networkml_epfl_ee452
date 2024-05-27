@@ -22,6 +22,7 @@ class PlaceHolder:
         return PlaceHolder(X=X, E=E, y=y)
 
     def mask(self, node_mask):
+        node_mask = node_mask.to(self.X.device)
         bs = node_mask.shape[0]
         n = node_mask.shape[1]
         x_mask = node_mask.unsqueeze(-1)  # bs, n, 1
@@ -29,14 +30,10 @@ class PlaceHolder:
         # Your solution here ###########################################################
         e_mask1 = node_mask.unsqueeze(-1).unsqueeze(-1)  # bs, n, 1, 1
         e_mask2 = node_mask.unsqueeze(1).unsqueeze(-1)  # bs, 1, n, 1
-        diag_mask = torch.ones([bs, n, n, 1], dtype=torch.bool)  # bs, n, n, 1
-        for node in range(n):
-            for graph in range(bs):
-                diag_mask[graph, node, node, 0] = False
+        diag_mask = torch.ones((bs, n, n, 1), device=node_mask.device) - torch.eye(n, device=node_mask.device).unsqueeze(0).unsqueeze(-1)  # bs, n, n, 1
         # ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
         self.X = self.X * x_mask
-
         self.E = self.E * e_mask1 * e_mask2 * diag_mask
         assert torch.allclose(self.E, torch.transpose(self.E, 1, 2))
 
